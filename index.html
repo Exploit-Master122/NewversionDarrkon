@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Darrkon</title>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Sans:wght@400;600;700&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --background: #0a0a0a;
+      --foreground: #ffffff;
+      --card: #111111;
+      --card-foreground: #ffffff;
+      --primary: #dc2626;
+      --primary-foreground: #ffffff;
+      --secondary: #ef4444;
+      --accent: #dc2626;
+      --accent-foreground: #ffffff;
+      --border: #333333;
+      --input: #1a1a1a;
+      --muted: #222222;
+      --radius: 0.75rem;
+    }
+
+    body {
+      font-family: 'Manrope', sans-serif;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+      color: var(--foreground);
+      min-height: 100vh;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Added particle stars background */
+    #particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .star {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle 3s infinite;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+
+    .password-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 1;
+      transition: opacity 0.5s ease;
+    }
+
+    .password-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .password-modal {
+      background: var(--card);
+      padding: 50px;
+      border-radius: calc(var(--radius) * 2);
+      box-shadow: 0 25px 50px -12px rgba(220, 38, 38, 0.3);
+      max-width: 450px;
+      width: 90%;
+      text-align: center;
+      transform: scale(1);
+      transition: transform 0.5s ease;
+      border: 1px solid var(--border);
+    }
+
+    .password-overlay.hidden .password-modal {
+      transform: scale(0.9);
+    }
+
+    .password-modal h2 {
+      font-family: 'Geist Sans', sans-serif;
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .password-modal p {
+      color: var(--foreground);
+      margin-bottom: 30px;
+      opacity: 0.8;
+      font-size: 18px;
+    }
+
+    .password-input {
+      width: 100%;
+      padding: 16px 20px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--input);
+      color: var(--foreground);
+      font-size: 18px;
+      margin-bottom: 25px;
+      transition: all 0.3s ease;
+    }
+
+    .password-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+    }
+
+    .password-btn {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: var(--primary-foreground);
+      border: none;
+      padding: 16px 32px;
+      border-radius: var(--radius);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 18px;
+      font-family: 'Geist Sans', sans-serif;
+    }
+
+    .password-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
+    }
+
+    /* Added styles for hint functionality */
+    .hint-text {
+      color: var(--foreground);
+      margin-top: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      opacity: 0.7;
+      transition: all 0.3s ease;
+    }
+
+    .hint-text:hover {
+      opacity: 1;
+      color: var(--primary);
+    }
+
+    .hint-message {
+      margin-top: 15px;
+      padding: 15px;
+      background: var(--muted);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      animation: fadeIn 0.3s ease;
+    }
+
+    .hint-message p {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .discord-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .discord-link:hover {
+      color: var(--secondary);
+      text-decoration: underline;
+    }
+
+    .main-content {
+      display: none;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      margin-left: 0;
+      transition: margin-left 0.3s ease, opacity 0.5s ease;
+    }
+
+    .main-content.visible {
+      display: block;
+      opacity: 1;
+    }
+
+    /* Added sidebar navigation with toggle functionality */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -280px;
+      width: 280px;
+      height: 100vh;
+      background: linear-gradient(180deg, var(--card) 0%, var(--background) 100%);
+      border-right: 1px solid var(--border);
+      transition: left 0.3s ease;
+      z-index: 100;
+      padding: 30px 0;
+    }
+
+    .sidebar.open {
+      left: 0;
+    }
+
+    .main-content.sidebar-open {
+      margin-left: 280px;
+    }
+
+    .sidebar-toggle {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      z-index: 101;
+      transition: all 0.3s ease;
+      font-size: 18px;
+    }
+
+    .sidebar-toggle:hover {
+      background: var(--secondary);
+      transform: scale(1.1);
+    }
+
+    .sidebar h2 {
+      font-family: 'Geist Sans', sans-serif;
+      color: var(--primary);
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 0 20px;
+    }
+
+    .sidebar-nav button {
+      background: transparent;
+      border: 2px solid var(--border);
+      color: var(--foreground);
+      padding: 16px 20px;
+      cursor: pointer;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-family: 'Geist Sans', sans-serif;
+      transition: all 0.3s ease;
+      text-align: left;
+      font-size: 16px;
+    }
+
+    .sidebar-nav button:hover,
+    .sidebar-nav button.active {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: var(--primary-foreground);
+      border-color: var(--primary);
+      transform: translateX(8px);
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--card) 0%, var(--background) 100%);
+      padding: 60px 20px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      animation: fadeInDown 0.8s ease;
+    }
+
+    .header h1 {
+      font-family: 'Geist Sans', sans-serif;
+      color: var(--primary);
+      font-size: 56px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 0 30px rgba(220, 38, 38, 0.3);
+    }
+
+    .header p {
+      color: var(--foreground);
+      font-size: 20px;
+      opacity: 0.8;
+      font-weight: 500;
+    }
+
+    .content {
+      padding: 50px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      animation: fadeIn 1s ease 0.4s both;
+    }
+
+    .tab {
+      display: none;
+    }
+
+    .tab.active {
+      display: block;
+      animation: slideIn 0.5s ease;
+    }
+
+    .browser-section {
+      background: var(--card);
+      padding: 40px;
+      border-radius: calc(var(--radius) * 2);
+      border: 1px solid var(--border);
+      margin-bottom: 30px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .browser-section:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 15px 40px rgba(220, 38, 38, 0.2);
+    }
+
+    .browser-section h2 {
+      font-family: 'Geist Sans', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 25px;
+    }
+
+    .browser-section h3 {
+      font-family: 'Geist Sans', sans-serif;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--foreground);
+      margin: 30px 0 20px 0;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 20px 24px;
+      margin: 25px 0;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--input);
+      color: var(--foreground);
+      font-size: 18px;
+      font-family: 'Manrope', sans-serif;
+      transition: all 0.3s ease;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: var(--primary-foreground);
+      border: none;
+      padding: 16px 32px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-weight: 600;
+      font-family: 'Geist Sans', sans-serif;
+      margin: 8px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(220, 38, 38, 0.5);
+    }
+
+    iframe {
+      width: 100%;
+      height: 700px;
+      border: none;
+      border-radius: var(--radius);
+      margin-top: 25px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+      transition: box-shadow 0.3s ease;
+    }
+
+    iframe:hover {
+      box-shadow: 0 15px 50px rgba(220, 38, 38, 0.2);
+    }
+
+    .links {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 25px;
+      margin-top: 30px;
+    }
+
+    .links a {
+      color: var(--foreground);
+      text-decoration: none;
+      padding: 25px;
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      display: block;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      font-size: 16px;
+    }
+
+    .links a:hover {
+      background: var(--muted);
+      border-color: var(--primary);
+      transform: translateY(-6px);
+      box-shadow: 0 12px 35px rgba(220, 38, 38, 0.3);
+      color: var(--primary);
+    }
+
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+
+    @media (max-width: 768px) {
+      .main-content.sidebar-open {
+        margin-left: 0;
+      }
+      
+      .sidebar {
+        width: 100%;
+        left: -100%;
+      }
+      
+      .content {
+        padding: 30px 15px;
+      }
+
+      .header h1 {
+        font-size: 42px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Added particle stars background -->
+  <div id="particles"></div>
+
+  <div id="passwordOverlay" class="password-overlay">
+    <div class="password-modal">
+      <h2>Access Required</h2>
+      <p>Enter the password to access Darrkon</p>
+      <input type="password" id="passwordInput" class="password-input" placeholder="Enter password">
+      <button onclick="checkPassword()" class="password-btn">Unlock</button>
+      <!-- Added hint functionality with discord link -->
+      <p class="hint-text" onclick="showHint()">Need a hint?</p>
+      <div id="hintMessage" class="hint-message" style="display: none;">
+        <p>Join our <a href="https://discord.gg/PLACEHOLDER" target="_blank" class="discord-link">Discord server</a> for the password!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Added sidebar toggle button -->
+  <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+
+  <!-- Added sidebar navigation -->
+  <div id="sidebar" class="sidebar">
+    <h2>Navigation</h2>
+    <div class="sidebar-nav">
+      <button class="active" onclick="showTab('browser', this)">Browser</button>
+      <button onclick="showTab('links', this)">Links</button>
+      <button onclick="showTab('games', this)">Games</button>
+      <button onclick="showTab('settings', this)">Settings</button>
+    </div>
+  </div>
+
+  <div id="mainContent" class="main-content">
+    <div class="header">
+      <h1>Darrkon</h1>
+      <p>Advanced Proxy Browser - Secure & Fast</p>
+    </div>
+
+    <div class="content">
+      <div id="browser" class="tab active">
+        <div class="browser-section">
+          <h2>Proxy Browser</h2>
+          <input type="text" id="urlInput" placeholder="Enter URL or search term...">
+          <div>
+            <button class="btn" onclick="loadSite('iframe')">Direct Load</button>
+            <button class="btn" onclick="loadSite('uv')">Ultraviolet</button>
+            <button class="btn" onclick="loadSite('rammerhead')">Rammerhead</button>
+          </div>
+          <iframe id="proxyFrame"></iframe>
+        </div>
+      </div>
+
+      <div id="links" class="tab">
+        <h2>Proxy Links</h2>
+        <div class="links">
+          <a href="https://us4-z.global.ssl.fastly.net/" target="_blank">US4 Proxy Z</a>
+          <a href="https://cesium.insviro.com/" target="_blank">Cesium Browser</a>
+          <a href="https://writingessayepicguide.lol/en_US/" target="_blank">Nebula Browser</a>
+          <a href="https://travel.kigurun.ru/" target="_blank">DayDreamX</a>
+          <a href="https://maths.onl/" target="_blank">UniUB</a>
+          <a href="https://void.ubyis.org/" target="_blank">Void Network</a>
+          <a href="https://ubgusa.com/" target="_blank">America's Unblocker</a>
+          <a href="https://oil.radicalnetworks.org/" target="_blank">Emerald</a>
+        </div>
+      </div>
+
+      <div id="games" class="tab">
+        <h2>Games</h2>
+        <div class="links">
+          <a href="https://unblocked-games.s3.amazonaws.com/index.html" target="_blank">Nova Online Play</a>
+          <a href="https://www.hoodamath.com/games/run.html" target="_blank">Unblocked Games</a>
+          <a href="https://1games.io/" target="_blank">1Games.io</a>
+          <a href="https://drivemad.com" target="_blank">DriveMad</a>
+          <a href="https://classroom6x-plus.github.io/new/" target="_blank">Classroom6x</a>
+        </div>
+      </div>
+
+      <div id="settings" class="tab">
+        <h2>Settings</h2>
+        <div class="browser-section">
+          <h3>Tab Cloaking</h3>
+          <button class="btn" onclick="cloak('Google Docs')">Google Docs</button>
+          <button class="btn" onclick="cloak('Classroom')">Classroom</button>
+          <button class="btn" onclick="cloak('New Tab')">New Tab</button>
+          
+          <h3>Panic Button</h3>
+          <p>Press Ctrl+Q to quickly redirect to Google Classroom</p>
+          <button class="btn" onclick="panic()">Test Panic</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const correctPassword = "darrkon2024";
+    
+    function createStars() {
+      const particles = document.getElementById('particles');
+      for (let i = 0; i < 100; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.width = Math.random() * 3 + 1 + 'px';
+        star.style.height = star.style.width;
+        star.style.animationDelay = Math.random() * 3 + 's';
+        particles.appendChild(star);
+      }
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const mainContent = document.getElementById('mainContent');
+      sidebar.classList.toggle('open');
+      mainContent.classList.toggle('sidebar-open');
+    }
+    
+    function checkPassword() {
+      const input = document.getElementById('passwordInput').value;
+      if (input === correctPassword) {
+        document.getElementById('passwordOverlay').classList.add('hidden');
+        setTimeout(() => {
+          document.getElementById('passwordOverlay').style.display = 'none';
+          document.getElementById('mainContent').classList.add('visible');
+          createStars();
+        }, 500);
+      } else {
+        const modal = document.querySelector('.password-modal');
+        modal.style.animation = 'shake 0.5s ease';
+        setTimeout(() => {
+          modal.style.animation = '';
+        }, 500);
+        document.getElementById('passwordInput').value = '';
+      }
+    }
+
+    function showTab(tabName, buttonElement) {
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      document.querySelectorAll('.sidebar-nav button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      setTimeout(() => {
+        document.getElementById(tabName).classList.add('active');
+        if (buttonElement) {
+          buttonElement.classList.add('active');
+        }
+      }, 100);
+    }
+
+    function loadSite(proxy) {
+      const url = document.getElementById('urlInput').value.trim();
+      const frame = document.getElementById('proxyFrame');
+      
+      if (!url) {
+        alert('Enter a URL first');
+        return;
+      }
+
+      frame.style.opacity = '0.5';
+      
+      switch(proxy) {
+        case 'iframe':
+          frame.src = url.startsWith('http') ? url : 'https://www.google.com/search?q=' + encodeURIComponent(url);
+          break;
+        case 'uv':
+          frame.src = 'https://uvv2.rhw.one/active/';
+          break;
+        case 'rammerhead':
+          frame.src = 'https://108.181.32.77.nip.io/';
+          break;
+      }
+
+      frame.onload = () => {
+        frame.style.opacity = '1';
+      };
+    }
+
+    function cloak(title) {
+      document.title = title;
+    }
+
+    function panic() {
+      window.open('https://classroom.google.com', '_blank');
+    }
+
+    /* Added hint functionality */
+    function showHint() {
+      const hintMessage = document.getElementById('hintMessage');
+      if (hintMessage.style.display === 'none') {
+        hintMessage.style.display = 'block';
+      } else {
+        hintMessage.style.display = 'none';
+      }
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.ctrlKey && e.key === 'q') {
+        panic();
+      }
+      if (e.key === 'Enter' && document.getElementById('passwordInput') === document.activeElement) {
+        checkPassword();
+      }
+    });
+  </script>
+</body>
+</html>
